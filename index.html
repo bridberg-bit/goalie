@@ -1,0 +1,774 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hockey Goalie Fitness Trainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .workout-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .workout-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        .workout-card.active {
+            border: 2px solid #2563eb;
+            background: #eff6ff;
+        }
+        
+        .workout-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .workout-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .workout-emoji {
+            font-size: 2rem;
+        }
+        
+        .workout-name {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .workout-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #10b981;
+            transition: width 0.3s ease;
+        }
+        
+        .exercise-list {
+            display: none;
+            margin-top: 1rem;
+        }
+        
+        .exercise-list.show {
+            display: block;
+        }
+        
+        .exercise-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: #f9fafb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .exercise-item:hover {
+            background: #f3f4f6;
+        }
+        
+        .exercise-item.completed {
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+        }
+        
+        .exercise-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            background: #9ca3af;
+        }
+        
+        .exercise-item.completed .exercise-checkbox {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        
+        .exercise-info {
+            flex-grow: 1;
+        }
+        
+        .exercise-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .exercise-reps {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .exercise-xp {
+            background: #fef3c7;
+            color: #d97706;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .button {
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .button:hover {
+            background: #1d4ed8;
+        }
+        
+        .button-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .achievements {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            gap: 0.75rem;
+        }
+        
+        .achievement-item.unlocked {
+            border-color: #fbbf24;
+            background: #fffbeb;
+        }
+        
+        .achievement-emoji {
+            font-size: 2rem;
+        }
+        
+        .achievement-info h4 {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .achievement-info p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .level-badge {
+            background: #fbbf24;
+            color: #92400e;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .xp-progress {
+            margin-top: 0.5rem;
+            color: #fbbf24;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .workout-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🥅 Goalie Fitness Trainer</h1>
+            <p>Become the ultimate hockey goalie</p>
+            <div style="margin-top: 1rem;">
+                <span class="level-badge" id="levelBadge">Level 1</span>
+                <div class="xp-progress" id="xpProgress">0 XP (500 to next level)</div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" style="color: #f97316;" id="streakCount">0</div>
+                <div>🔥 Day Streak</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #eab308;" id="achievementCount">0</div>
+                <div>🏆 Achievements</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #10b981;" id="exerciseCount">0</div>
+                <div>📈 Exercises Done</div>
+            </div>
+        </div>
+
+        <!-- Workout Schedule -->
+        <div class="workout-schedule">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.8rem;">Weekly Training Schedule</h2>
+            
+            <div class="workout-card" data-day="monday">
+                <div class="workout-header">
+                    <div class="workout-title">
+                        <span class="workout-emoji">🦵</span>
+                        <div>
+                            <div class="workout-name">Monday</div>
+                            <div class="workout-description">Lower Body & Hip Mobility</div>
+                        </div>
+                    </div>
+                    <button class="button button-small" onclick="toggleWorkout('monday')">Start Workout</button>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-monday" style="width: 0%"></div>
+                </div>
+                <div style="margin-top: 0.5rem; color: #6b7280; font-size: 0.9rem;">
+                    <span id="completion-monday">0% Complete (0/13 exercises)</span>
+                    <span style="float: right; color: #2563eb; font-weight: bold;">
+                        <span id="xp-monday">0</span>/150 XP
+                    </span>
+                </div>
+                
+                <div class="exercise-list" id="exercises-monday">
+                    <div class="exercise-item" onclick="toggleExercise('monday', 0)">
+                        <div class="exercise-checkbox">1</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Leg Swings</div>
+                            <div class="exercise-reps">10 each direction/leg</div>
+                        </div>
+                        <div class="exercise-xp">15 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 1)">
+                        <div class="exercise-checkbox">2</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Hip Circles</div>
+                            <div class="exercise-reps">10 each direction</div>
+                        </div>
+                        <div class="exercise-xp">15 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 2)">
+                        <div class="exercise-checkbox">3</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Bodyweight Squats</div>
+                            <div class="exercise-reps">15 reps</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 3)">
+                        <div class="exercise-checkbox">4</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Walking Lunges</div>
+                            <div class="exercise-reps">10 each leg</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 4)">
+                        <div class="exercise-checkbox">5</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Goblet Squats</div>
+                            <div class="exercise-reps">12-15 reps × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">25 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 5)">
+                        <div class="exercise-checkbox">6</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Single-Leg Romanian Deadlifts</div>
+                            <div class="exercise-reps">8 each leg × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">25 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 6)">
+                        <div class="exercise-checkbox">7</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Lateral Lunges</div>
+                            <div class="exercise-reps">10 each side × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">25 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 7)">
+                        <div class="exercise-checkbox">8</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Glute Bridges</div>
+                            <div class="exercise-reps">15 reps × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 8)">
+                        <div class="exercise-checkbox">9</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Cossack Squats</div>
+                            <div class="exercise-reps">6 each side × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">30 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 9)">
+                        <div class="exercise-checkbox">10</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">90/90 Hip Stretch</div>
+                            <div class="exercise-reps">1 min each side</div>
+                        </div>
+                        <div class="exercise-xp">15 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 10)">
+                        <div class="exercise-checkbox">11</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Pigeon Pose</div>
+                            <div class="exercise-reps">1 min each side</div>
+                        </div>
+                        <div class="exercise-xp">15 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 11)">
+                        <div class="exercise-checkbox">12</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Hip Flexor Stretch</div>
+                            <div class="exercise-reps">1 min each side</div>
+                        </div>
+                        <div class="exercise-xp">15 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('monday', 12)">
+                        <div class="exercise-checkbox">13</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Deep Squat Hold</div>
+                            <div class="exercise-reps">2 minutes</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workout-card" data-day="tuesday">
+                <div class="workout-header">
+                    <div class="workout-title">
+                        <span class="workout-emoji">💪</span>
+                        <div>
+                            <div class="workout-name">Tuesday</div>
+                            <div class="workout-description">Upper Body & Core</div>
+                        </div>
+                    </div>
+                    <button class="button button-small" onclick="toggleWorkout('tuesday')">Start Workout</button>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-tuesday" style="width: 0%"></div>
+                </div>
+                <div style="margin-top: 0.5rem; color: #6b7280; font-size: 0.9rem;">
+                    <span id="completion-tuesday">0% Complete (0/13 exercises)</span>
+                    <span style="float: right; color: #2563eb; font-weight: bold;">
+                        <span id="xp-tuesday">0</span>/140 XP
+                    </span>
+                </div>
+                
+                <div class="exercise-list" id="exercises-tuesday">
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 0)">
+                        <div class="exercise-checkbox">1</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Arm Circles</div>
+                            <div class="exercise-reps">10 each direction</div>
+                        </div>
+                        <div class="exercise-xp">10 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 1)">
+                        <div class="exercise-checkbox">2</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Shoulder Rolls</div>
+                            <div class="exercise-reps">10 backwards</div>
+                        </div>
+                        <div class="exercise-xp">10 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 2)">
+                        <div class="exercise-checkbox">3</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Cat-Cow Stretches</div>
+                            <div class="exercise-reps">10 reps</div>
+                        </div>
+                        <div class="exercise-xp">15 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 3)">
+                        <div class="exercise-checkbox">4</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Plank Hold</div>
+                            <div class="exercise-reps">30 seconds</div>
+                        </div>
+                        <div class="exercise-xp">15 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 4)">
+                        <div class="exercise-checkbox">5</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Push-ups</div>
+                            <div class="exercise-reps">10-15 reps × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">25 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 5)">
+                        <div class="exercise-checkbox">6</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Resistance Band Rows</div>
+                            <div class="exercise-reps">15 reps × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 6)">
+                        <div class="exercise-checkbox">7</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Pike Push-ups</div>
+                            <div class="exercise-reps">8-12 reps × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">25 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 7)">
+                        <div class="exercise-checkbox">8</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Face Pulls</div>
+                            <div class="exercise-reps">15 reps × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 8)">
+                        <div class="exercise-checkbox">9</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">External Rotations</div>
+                            <div class="exercise-reps">12 each arm × 3 sets</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 9)">
+                        <div class="exercise-checkbox">10</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Dead Bug</div>
+                            <div class="exercise-reps">10 each side × 2 sets</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 10)">
+                        <div class="exercise-checkbox">11</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Side Plank</div>
+                            <div class="exercise-reps">30 sec each side × 2 sets</div>
+                        </div>
+                        <div class="exercise-xp">25 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 11)">
+                        <div class="exercise-checkbox">12</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Bird Dog</div>
+                            <div class="exercise-reps">10 each side × 2 sets</div>
+                        </div>
+                        <div class="exercise-xp">20 XP</div>
+                    </div>
+                    <div class="exercise-item" onclick="toggleExercise('tuesday', 12)">
+                        <div class="exercise-checkbox">13</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">Pallof Press</div>
+                            <div class="exercise-reps">10 each side × 2 sets</div>
+                        </div>
+                        <div class="exercise-xp">25 XP</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add more days here if needed -->
+        </div>
+
+        <!-- Achievements -->
+        <div class="achievements">
+            <h2 style="margin-bottom: 1rem; font-size: 1.8rem;">🏆 Achievements</h2>
+            <div class="achievement-grid">
+                <div class="achievement-item" id="achievement-first">
+                    <div class="achievement-emoji">🥇</div>
+                    <div class="achievement-info">
+                        <h4>First Steps</h4>
+                        <p>Complete your first exercise</p>
+                    </div>
+                </div>
+                <div class="achievement-item" id="achievement-week">
+                    <div class="achievement-emoji">⚔️</div>
+                    <div class="achievement-info">
+                        <h4>Week Warrior</h4>
+                        <p>Complete a full week of workouts</p>
+                    </div>
+                </div>
+                <div class="achievement-item" id="achievement-streak">
+                    <div class="achievement-emoji">🔥</div>
+                    <div class="achievement-info">
+                        <h4>Streak Master</h4>
+                        <p>Maintain a 7-day streak</p>
+                    </div>
+                </div>
+                <div class="achievement-item" id="achievement-goalie">
+                    <div class="achievement-emoji">🥅</div>
+                    <div class="achievement-info">
+                        <h4>Goalie God</h4>
+                        <p>Reach level 10</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple fitness app functionality
+        let exerciseData = {};
+        let totalXP = 0;
+        let level = 1;
+        let streak = 0;
+        let achievements = [];
+
+        // Load saved data
+        function loadData() {
+            const saved = localStorage.getItem('goalieApp');
+            if (saved) {
+                const data = JSON.parse(saved);
+                exerciseData = data.exerciseData || {};
+                totalXP = data.totalXP || 0;
+                level = data.level || 1;
+                streak = data.streak || 0;
+                achievements = data.achievements || [];
+                updateDisplay();
+            }
+        }
+
+        // Save data
+        function saveData() {
+            const data = {
+                exerciseData,
+                totalXP,
+                level,
+                streak,
+                achievements
+            };
+            localStorage.setItem('goalieApp', JSON.stringify(data));
+        }
+
+        // Toggle workout visibility
+        function toggleWorkout(day) {
+            const exercises = document.getElementById(`exercises-${day}`);
+            const card = document.querySelector(`[data-day="${day}"]`);
+            
+            // Hide all other workouts
+            document.querySelectorAll('.exercise-list').forEach(list => {
+                if (list.id !== `exercises-${day}`) {
+                    list.classList.remove('show');
+                }
+            });
+            document.querySelectorAll('.workout-card').forEach(c => {
+                if (c !== card) {
+                    c.classList.remove('active');
+                }
+            });
+            
+            // Toggle current workout
+            exercises.classList.toggle('show');
+            card.classList.toggle('active');
+        }
+
+        // Toggle exercise completion
+        function toggleExercise(day, index) {
+            const key = `${day}-${index}`;
+            const exerciseElement = document.querySelector(`#exercises-${day} .exercise-item:nth-child(${index + 1})`);
+            const checkbox = exerciseElement.querySelector('.exercise-checkbox');
+            
+            if (exerciseData[key]) {
+                // Uncheck
+                exerciseData[key] = false;
+                exerciseElement.classList.remove('completed');
+                checkbox.textContent = index + 1;
+                checkbox.style.background = '#9ca3af';
+                
+                // Remove XP
+                const xpValue = parseInt(exerciseElement.querySelector('.exercise-xp').textContent);
+                totalXP = Math.max(0, totalXP - xpValue);
+            } else {
+                // Check
+                exerciseData[key] = true;
+                exerciseElement.classList.add('completed');
+                checkbox.textContent = '✓';
+                checkbox.style.background = '#10b981';
+                
+                // Add XP
+                const xpValue = parseInt(exerciseElement.querySelector('.exercise-xp').textContent);
+                totalXP += xpValue;
+                
+                // Check for first exercise achievement
+                if (!achievements.includes('first') && Object.values(exerciseData).filter(Boolean).length === 1) {
+                    achievements.push('first');
+                    document.getElementById('achievement-first').classList.add('unlocked');
+                    alert('🥇 Achievement Unlocked: First Steps!');
+                }
+            }
+            
+            updateDisplay();
+            saveData();
+        }
+
+        // Update display
+        function updateDisplay() {
+            // Update level
+            level = Math.floor(totalXP / 500) + 1;
+            document.getElementById('levelBadge').textContent = `Level ${level}`;
+            document.getElementById('xpProgress').textContent = `${totalXP} XP (${500 - (totalXP % 500)} to next level)`;
+            
+            // Update stats
+            document.getElementById('streakCount').textContent = streak;
+            document.getElementById('achievementCount').textContent = achievements.length;
+            document.getElementById('exerciseCount').textContent = Object.values(exerciseData).filter(Boolean).length;
+            
+            // Update workout progress
+            updateWorkoutProgress('monday', 13, 260);
+            updateWorkoutProgress('tuesday', 13, 235);
+        }
+
+        // Update workout progress
+        function updateWorkoutProgress(day, totalExercises, totalXP) {
+            let completed = 0;
+            let earnedXP = 0;
+            
+            for (let i = 0; i < totalExercises; i++) {
+                if (exerciseData[`${day}-${i}`]) {
+                    completed++;
+                    const exerciseElement = document.querySelector(`#exercises-${day} .exercise-item:nth-child(${i + 1})`);
+                    if (exerciseElement) {
+                        earnedXP += parseInt(exerciseElement.querySelector('.exercise-xp').textContent);
+                    }
+                }
+            }
+            
+            const percentage = (completed / totalExercises) * 100;
+            document.getElementById(`progress-${day}`).style.width = `${percentage}%`;
+            document.getElementById(`completion-${day}`).textContent = `${Math.round(percentage)}% Complete (${completed}/${totalExercises} exercises)`;
+            document.getElementById(`xp-${day}`).textContent = earnedXP;
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            
+            // Load completed exercises from storage
+            Object.keys(exerciseData).forEach(key => {
+                if (exerciseData[key]) {
+                    const [day, index] = key.split('-');
+                    const exerciseElement = document.querySelector(`#exercises-${day} .exercise-item:nth-child(${parseInt(index) + 1})`);
+                    if (exerciseElement) {
+                        const checkbox = exerciseElement.querySelector('.exercise-checkbox');
+                        exerciseElement.classList.add('completed');
+                        checkbox.textContent = '✓';
+                        checkbox.style.background = '#10b981';
+                    }
+                }
+            });
+            
+            // Update achievements display
+            achievements.forEach(achievement => {
+                if (achievement === 'first') {
+                    document.getElementById('achievement-first').classList.add('unlocked');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
