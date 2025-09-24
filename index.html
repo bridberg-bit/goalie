@@ -242,6 +242,95 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .weekly-history {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+
+        .weekly-history h2 {
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .weekly-history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .weekly-history-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem 1rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #f9fafb;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .weekly-history-item.current {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .weekly-history-item.complete {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .weekly-history-dates {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1f2937;
+        }
+
+        .weekly-history-progress {
+            flex: 1 1 220px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .weekly-history-bar {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weekly-history-bar-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #2563eb;
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+
+        .weekly-history-count {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .weekly-history-status {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .weekly-history-empty {
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
         .achievement-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -334,6 +423,13 @@
         <div class="workout-schedule">
             <h2 style="margin-bottom: 1.5rem; font-size: 1.8rem;">Weekly Training Schedule</h2>
             <div id="workoutCards"></div>
+        </div>
+
+        <div class="weekly-history">
+            <h2>📅 Weekly Progress</h2>
+            <div id="weeklyHistory" class="weekly-history-list">
+                <div class="weekly-history-empty">Complete workouts to start building your weekly history.</div>
+            </div>
         </div>
 
         <div class="achievements">
@@ -767,6 +863,32 @@
             return formatDate(current);
         }
 
+        function formatWeekRangeLabel(weekKey) {
+            if (!weekKey) {
+                return 'Current Week';
+            }
+
+            const start = parseDateKey(weekKey);
+            if (Number.isNaN(start.getTime())) {
+                return `Week of ${weekKey}`;
+            }
+
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
+
+            const startYear = start.getFullYear();
+            const endYear = end.getFullYear();
+            const options = { month: 'short', day: 'numeric' };
+            const startLabel = start.toLocaleDateString(undefined, options);
+            const endLabel = end.toLocaleDateString(undefined, options);
+
+            if (startYear === endYear) {
+                return `${startLabel} – ${endLabel}, ${startYear}`;
+            }
+
+            return `${startLabel}, ${startYear} – ${endLabel}, ${endYear}`;
+        }
+
         function addDayToLogs(day, dateKey) {
             if (!dateKey) {
                 return;
@@ -844,6 +966,111 @@
             }
 
             return count;
+        }
+
+        function renderWeeklyHistory() {
+            const container = document.getElementById('weeklyHistory');
+            if (!container) {
+                return;
+            }
+
+            const totalWorkouts = Object.keys(workoutMeta).length;
+            const entries = new Map();
+
+            if (currentWeekKey) {
+                entries.set(currentWeekKey, {
+                    weekKey: currentWeekKey,
+                    workouts: [],
+                    isCurrent: true
+                });
+            }
+
+            Object.entries(weekCompletions).forEach(([weekKey, info]) => {
+                if (!info) {
+                    return;
+                }
+                const workouts = Array.isArray(info.workouts)
+                    ? Array.from(new Set(info.workouts))
+                    : [];
+                if (entries.has(weekKey)) {
+                    const existing = entries.get(weekKey);
+                    existing.workouts = Array.from(new Set([...existing.workouts, ...workouts]));
+                } else {
+                    entries.set(weekKey, {
+                        weekKey,
+                        workouts,
+                        isCurrent: weekKey === currentWeekKey
+                    });
+                }
+            });
+
+            const weeks = Array.from(entries.values())
+                .sort((a, b) => (a.weekKey < b.weekKey ? 1 : -1))
+                .slice(0, 8);
+
+            container.innerHTML = '';
+
+            if (weeks.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'weekly-history-empty';
+                empty.textContent = 'Complete workouts to start building your weekly history.';
+                container.appendChild(empty);
+                return;
+            }
+
+            weeks.forEach(({ weekKey, workouts, isCurrent }) => {
+                const uniqueWorkouts = Array.from(new Set(workouts));
+                const completedCount = uniqueWorkouts.length;
+                const progressPercent = totalWorkouts > 0
+                    ? Math.min(100, (completedCount / totalWorkouts) * 100)
+                    : 0;
+
+                const item = document.createElement('div');
+                item.className = 'weekly-history-item';
+                if (isCurrent) {
+                    item.classList.add('current');
+                }
+                if (totalWorkouts > 0 && completedCount >= totalWorkouts) {
+                    item.classList.add('complete');
+                }
+
+                const label = document.createElement('div');
+                label.className = 'weekly-history-dates';
+                const baseLabel = formatWeekRangeLabel(weekKey);
+                label.textContent = isCurrent ? `${baseLabel} (Current)` : baseLabel;
+
+                const progressWrap = document.createElement('div');
+                progressWrap.className = 'weekly-history-progress';
+
+                const bar = document.createElement('div');
+                bar.className = 'weekly-history-bar';
+
+                const fill = document.createElement('div');
+                fill.className = 'weekly-history-bar-fill';
+                fill.style.width = `${progressPercent}%`;
+                bar.appendChild(fill);
+
+                const count = document.createElement('div');
+                count.className = 'weekly-history-count';
+                count.textContent = totalWorkouts > 0
+                    ? `${completedCount}/${totalWorkouts} days`
+                    : `${completedCount} days`;
+
+                progressWrap.append(bar, count);
+
+                const status = document.createElement('div');
+                status.className = 'weekly-history-status';
+                if (totalWorkouts > 0 && completedCount >= totalWorkouts) {
+                    status.textContent = 'Week complete! Fantastic consistency.';
+                } else if (completedCount === 0) {
+                    status.textContent = 'No workouts logged yet.';
+                } else {
+                    status.textContent = 'Keep building momentum!';
+                }
+
+                item.append(label, progressWrap, status);
+                container.appendChild(item);
+            });
         }
         function unlockAchievement(id, message, notify = false) {
             if (!ACHIEVEMENT_DETAILS[id]) {
@@ -1102,6 +1329,7 @@
             updateDisplay();
             evaluateAchievements({ notify: options.notifyAchievements });
             updateAchievementsDisplay();
+            renderWeeklyHistory();
 
             const achievementLabel = document.getElementById('achievementCount');
             if (achievementLabel) {
