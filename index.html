@@ -692,8 +692,22 @@
                 return;
             }
             container.innerHTML = '';
+            workoutMeta = {};
 
             WORKOUT_PLAN.forEach(plan => {
+                const xpValues = plan.exercises.map(exercise => {
+                    const xp = Number(exercise.xp);
+                    return Number.isFinite(xp) ? xp : 0;
+                });
+                const totalExercises = xpValues.length;
+                const totalXP = xpValues.reduce((sum, value) => sum + value, 0);
+
+                workoutMeta[plan.id] = {
+                    totalExercises,
+                    totalXP,
+                    xpValues
+                };
+
                 const card = document.createElement('div');
                 card.className = 'workout-card';
                 card.dataset.day = plan.id;
@@ -741,9 +755,9 @@
                 statusRow.style.color = '#6b7280';
                 statusRow.style.fontSize = '0.9rem';
                 statusRow.innerHTML = `
-                    <span id="completion-${plan.id}">0% Complete (0/0 exercises)</span>
+                    <span id="completion-${plan.id}">0% Complete (0/${totalExercises} exercises)</span>
                     <span style="float: right; color: #2563eb; font-weight: bold;">
-                        <span id="xp-${plan.id}">0</span>/<span id="xp-target-${plan.id}">0</span> XP
+                        <span id="xp-${plan.id}">0</span>/<span id="xp-target-${plan.id}">${totalXP}</span> XP
                     </span>
                 `;
 
@@ -766,6 +780,7 @@
                 exerciseList.id = `exercises-${plan.id}`;
 
                 plan.exercises.forEach((exercise, index) => {
+                    const xpValue = xpValues[index] || 0;
                     const item = document.createElement('div');
                     item.className = 'exercise-item';
                     item.dataset.index = index;
@@ -790,7 +805,7 @@
 
                     const xp = document.createElement('div');
                     xp.className = 'exercise-xp';
-                    xp.textContent = `${exercise.xp} XP`;
+                    xp.textContent = `${xpValue} XP`;
 
                     item.append(checkbox, info, xp);
                     exerciseList.appendChild(item);
@@ -798,38 +813,6 @@
 
                 card.append(header, progressBar, statusRow, instructions, exerciseList);
                 container.appendChild(card);
-            });
-        }
-        function initializeWorkoutMeta() {
-            workoutMeta = {};
-            document.querySelectorAll('.workout-card').forEach(card => {
-                const day = card.dataset.day;
-                if (!day) {
-                    return;
-                }
-                const exerciseItems = card.querySelectorAll('.exercise-item');
-                const totalExercises = exerciseItems.length;
-                const totalXP = Array.from(exerciseItems).reduce((sum, item) => {
-                    const xpElement = item.querySelector('.exercise-xp');
-                    const xpValue = xpElement ? parseInt(xpElement.textContent, 10) : 0;
-                    return sum + (isNaN(xpValue) ? 0 : xpValue);
-                }, 0);
-                workoutMeta[day] = { totalExercises, totalXP };
-
-                const targetSpan = document.getElementById(`xp-target-${day}`);
-                if (targetSpan) {
-                    targetSpan.textContent = totalXP;
-                }
-
-                const completionSpan = document.getElementById(`completion-${day}`);
-                if (completionSpan) {
-                    completionSpan.textContent = `0% Complete (0/${totalExercises} exercises)`;
-                }
-
-                const currentXpSpan = document.getElementById(`xp-${day}`);
-                if (currentXpSpan) {
-                    currentXpSpan.textContent = 0;
-                }
             });
         }
 
@@ -1253,19 +1236,14 @@
             if (!meta) {
                 return;
             }
-            const { totalExercises } = meta;
+            const { totalExercises, totalXP, xpValues = [] } = meta;
             let completed = 0;
             let earnedXP = 0;
 
             for (let i = 0; i < totalExercises; i++) {
                 if (exerciseData[`${day}-${i}`]) {
                     completed += 1;
-                    const exerciseElement = document.querySelector(`#exercises-${day} .exercise-item[data-index="${i}"]`);
-                    if (exerciseElement) {
-                        const xpElement = exerciseElement.querySelector('.exercise-xp');
-                        const xpValue = xpElement ? parseInt(xpElement.textContent, 10) : 0;
-                        earnedXP += isNaN(xpValue) ? 0 : xpValue;
-                    }
+                    earnedXP += xpValues[i] || 0;
                 }
             }
 
@@ -1283,6 +1261,11 @@
             const xpText = document.getElementById(`xp-${day}`);
             if (xpText) {
                 xpText.textContent = earnedXP;
+            }
+
+            const targetText = document.getElementById(`xp-target-${day}`);
+            if (targetText) {
+                targetText.textContent = totalXP;
             }
 
             const isComplete = totalExercises > 0 && completed === totalExercises;
@@ -1346,6 +1329,7 @@
                 return;
             }
             const checkbox = exerciseElement.querySelector('.exercise-checkbox');
+            const xpValue = workoutMeta[day]?.xpValues?.[index] || 0;
 
             if (exerciseData[key]) {
                 exerciseData[key] = false;
@@ -1355,8 +1339,6 @@
                     checkbox.style.background = '#9ca3af';
                 }
 
-                const xpElement = exerciseElement.querySelector('.exercise-xp');
-                const xpValue = xpElement ? parseInt(xpElement.textContent, 10) : 0;
                 if (!Number.isNaN(xpValue)) {
                     totalXP = Math.max(0, totalXP - xpValue);
                 }
@@ -1368,8 +1350,6 @@
                     checkbox.style.background = '#10b981';
                 }
 
-                const xpElement = exerciseElement.querySelector('.exercise-xp');
-                const xpValue = xpElement ? parseInt(xpElement.textContent, 10) : 0;
                 if (!Number.isNaN(xpValue)) {
                     totalXP += xpValue;
                 }
@@ -1385,7 +1365,6 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             renderWorkouts();
-            initializeWorkoutMeta();
             loadData();
             restoreExerciseStates();
             rebuildLogsFromDayCompletion();
